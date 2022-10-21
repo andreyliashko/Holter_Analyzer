@@ -1,4 +1,3 @@
-
 import fileManager as fm
 
 import container_Manager as cm
@@ -7,5 +6,3 @@ n=cm.Container(file_dir)
 cont=""
 n.filling_containers(cont)
 # cm.container_filling(1, 1)
-
-
