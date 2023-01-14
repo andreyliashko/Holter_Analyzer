@@ -16,6 +16,9 @@ def write_file(dir_name):
 
     for i in range(n):
         with open(dir_name + ending + str(i) + file_type, 'w') as f:
+
+            f.write("signal="+str(i)+"; points="+str(len(sigbufs[i]))+"; duration="+str(fr.getFileDuration())+"\n")
+
             for j in range(len(sigbufs[i])):
                 f.write(str(sigbufs[i][j]) + "\n")
         print(dir_name + ending + str(i) + file_type + " just created")
