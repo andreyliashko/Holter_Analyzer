@@ -1,6 +1,8 @@
 import os
 
 import fileManager
+import scipy.stats as stats
+import numpy as np
 
 
 class Container:
@@ -12,7 +14,7 @@ class Container:
     def __init__(self, directory):
         self.dir = directory
         self.current_status = 0
-        self.delta = 1
+        self.delta = 10
         self.filling_containers()
         self.points_number = 0
         self.time_duration = 0
@@ -53,25 +55,17 @@ class Container:
             for i in inp_file:
                 j = j + 1
                 if j % self.delta == 0:
-                    out_date.append(self.getSecondsToTime(j, point_in_second).strip())
-                    output_list.append(i.strip())
+                    out_date.append(float(self.getSecondsToTime(j, point_in_second).strip()))
+                    output_list.append(float(i.strip()))
             inp_file.close()
             print("container successfully filled...")
             return 1
         print("An error occurred")
         return 0
 
-    # def getListFromFile(self, out_list2=None, from_index=0, to_index=10, file_number=0):
-    #     if out_list2 is None:
-    #         out_list2 = []
-    #     out_service_list = []
-    #     self.writeFileToList1(out_service_list, file_number)
-    #     copy = out_service_list[from_index:to_index]
-    #     return copy
-    #     # return 0
-
     def getDuration(self):
         return self.time_duration
 
     def getPointsAmount(self):
         return self.points_number
+
