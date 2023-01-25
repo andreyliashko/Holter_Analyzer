@@ -1,4 +1,5 @@
 import numpy as np
+import datetime
 
 
 def getMinimum(input_double):
@@ -31,3 +32,11 @@ def predictionLimits(data, amount_of_period=1):
     res.append(mean_val - amount_of_period * st_dev)
     res.append((mean_val + amount_of_period * st_dev))
     return res
+
+
+def convertSecondsToTime(s):
+    hours = s//3600
+    minutes = (s-hours*3600)//60
+    seconds = s-hours*3600-minutes*60
+    milis = s-hours*3600-minutes*60-seconds
+    return "Current time: "+str(hours)+"h. "+str(minutes)+"m. "+str(seconds)+"s. "+str(milis)+"ms"
