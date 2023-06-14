@@ -1,8 +1,11 @@
 import os.path
+import sys
+
 import numpy as np
 import pyedflib as edfl
 
-from start_module import Variables
+sys.path.insert(1, os.path.join(sys.path[0], '../start_module'))
+import Variables
 
 ending = "_generated_"
 
@@ -54,4 +57,4 @@ def save_input_container(file_directory, file_name, st_time, fin_time, y_s):
         for i in y_s:
             f.write(str(i) + "\n")
     path = os.path.join(file_directory + "/" + file_name)
-    print("saved to "+path)
+    print("saved to " + path)

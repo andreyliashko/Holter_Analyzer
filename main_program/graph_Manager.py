@@ -1,13 +1,17 @@
 import os
+import sys
 
 import StaticMethods
 import numpy as np
-from start_module import Variables
 from main_program import container_Manager as cm
+
+sys.path.insert(1, os.path.join(sys.path[0], '../start_module'))
+import Variables
 import matplotlib.pyplot as plt
 import pylab
 import fileManager as fm
 from matplotlib.widgets import Button, Slider, CheckButtons
+import pyedflib
 
 draw_first_plot = True
 draw_second_plot = False
@@ -19,21 +23,17 @@ class Graph:
     delta_time = Variables.GraphConstant.delta_time
     startTime = 0
     finishTime = startTime + delta_time
-
+    signals_in_file = pyedflib.EdfReader(Variables.FilesConstant.file_directory).signals_in_file
     current_xs = []
-    current_ys0 = []
-    current_ys1 = []
-    current_ys2 = []
+    current_ys = []
+    for i in range(signals_in_file):
+        current_ys.append([])
     lim = 0
     on_changed_sign = Variables.FilesConstant.current_signal
     file_n = ""
 
     def getCurrentYS(self, s=Variables.FilesConstant.current_signal):
-        if s == 0:
-            return self.current_ys0
-        if s == 1:
-            return self.current_ys1
-        return self.current_ys2
+        return self.current_ys[s]
 
     def file_init(self):
         self.file_n = Variables.GraphConstant.gen_files_dir
@@ -49,9 +49,10 @@ class Graph:
     def start_init(self):
 
         n = cm.Container(Variables.FilesConstant.file_directory)
-        n.writeFileToList(self.current_ys0, 0)
-        n.writeFileToList(self.current_ys1, 1)
-        n.writeFileToListAndDate(self.current_ys2, self.current_xs, 2)
+        for i in range(self.signals_in_file - 1):
+            n.writeFileToList(self.current_ys[i], i)
+
+        n.writeFileToListAndDate(self.current_ys[self.signals_in_file - 1], self.current_xs, self.signals_in_file - 1)
 
         limit = (StaticMethods.predictionLimits(self.getCurrentYS(), 8))
         limit[0] = np.abs(limit[0])
@@ -70,15 +71,14 @@ class Graph:
             y_s.append(self.getCurrentYS(self.on_changed_sign)[current_position])
             current_position = current_position + 1
 
-    def init_to_file(self, x_s, y0_s, y1_s, y2_s):
+    def init_to_file(self, x_s, yn_s):
         current_position = 0
         while self.current_xs[current_position] < self.startTime:
             current_position = current_position + 1
         while self.current_xs[current_position] <= self.finishTime:
             x_s.append((self.current_xs[current_position]) - self.startTime)
-            y0_s.append(self.getCurrentYS(0)[current_position])
-            y1_s.append(self.getCurrentYS(1)[current_position])
-            y2_s.append(self.getCurrentYS(2)[current_position])
+            for i in range(self.signals_in_file):
+                yn_s[i].append(self.getCurrentYS(i)[current_position])
             current_position = current_position + 1
 
     def gen_files(self):
@@ -88,7 +88,7 @@ class Graph:
             os.mkdir(next_path)
         global sign_slider
         s = self.on_changed_sign
-        for i in range(3):
+        for i in range(self.signals_in_file):
             self.on_changed_sign = i
             sign_slider.set_val(i)
             self.redrawFigure()
@@ -97,15 +97,14 @@ class Graph:
         self.on_changed_sign = s
         sign_slider.set_val(s)
         x_s0 = []
-        y_s_0 = []
-        y_s_1 = []
-        y_s_2 = []
-        self.init_to_file(x_s0, y_s_0, y_s_1, y_s_2)
+        y_s_n = []
+        for i in range(self.signals_in_file):
+            y_s_n.append([])
+        self.init_to_file(x_s0, y_s_n)
         start_t = StaticMethods.sec_to_time_short(self.startTime)
         finish_t = StaticMethods.sec_to_time_short(self.finishTime)
-        fm.save_input_container(next_path, "signal" + str(0) + ".txt", start_t, finish_t, y_s_0)
-        fm.save_input_container(next_path, "signal" + str(1) + ".txt", start_t, finish_t, y_s_1)
-        fm.save_input_container(next_path, "signal" + str(2) + ".txt", start_t, finish_t, y_s_2)
+        for i in range(self.signals_in_file):
+            fm.save_input_container(next_path, "signal" + str(i) + ".txt", start_t, finish_t, y_s_n[i])
 
     def redrawFigure(self):
         x = []
@@ -171,7 +170,8 @@ def add_plot_menu():
     rax = pylab.axes([0.05, 0.32, 0.2, 0.15])
     global check
     global c
-    check = CheckButtons(rax, ('y=x(t)', 'y=(x(t)-x_average)/sqrt(D)', 'y=(x(t)-x_min)/(x_max-x_min)'), (draw_first_plot, draw_second_plot, draw_third_plot))
+    check = CheckButtons(rax, ('y=x(t)', 'y=(x(t)-x_average)/sqrt(D)', 'y=(x(t)-x_min)/(x_max-x_min)'),
+                         (draw_first_plot, draw_second_plot, draw_third_plot))
     [rec.set_color(c[i]) for i, rec in enumerate(check.labels)]
 
 
@@ -233,5 +233,8 @@ def start_plot():
     check.on_clicked(func)
     pylab.show()
 
+
+if __name__ == "__main__":
+    start_plot()
 #
 # start_plot()

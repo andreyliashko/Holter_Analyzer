@@ -1,6 +1,8 @@
 import os
+import sys
 
-from start_module import Variables
+sys.path.insert(1, os.path.join(sys.path[0], '../start_module'))
+import Variables
 import fileManager
 
 
@@ -33,6 +35,7 @@ class Container:
                     num = ''
         if num != '':
             num_list.append(int(num))
+        self.n_amount = num_list[0]
         self.points_number = num_list[1]
         self.time_duration = num_list[2]
 
@@ -57,7 +60,7 @@ class Container:
                     out_date.append(float(self.getSecondsToTime(j, point_in_second).strip()))
                     output_list0.append(float(i.strip()))
             inp_file.close()
-            print("container "+str(file_number)+" successfully filled...")
+            print("container " + str(file_number) + " successfully filled...")
             return 1
         print("An error occurred")
         return 0
@@ -88,4 +91,3 @@ class Container:
 
     def getPointsAmount(self):
         return self.points_number
-
