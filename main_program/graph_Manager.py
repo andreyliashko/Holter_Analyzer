@@ -158,6 +158,12 @@ class Graph:
         self.on_changed_sign = sign_slider.val
         self.redrawFigure()
 
+    def getElementPos(self, value: int):
+        return self.current_xs.index(value)
+
+    def getSignalsAmount(self):
+        return self.signals_in_file
+
 
 def add_time(ax, curr_time):
     ax.text(0.5, -0.125, curr_time,
