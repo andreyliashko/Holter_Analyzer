@@ -34,18 +34,18 @@ def predictionLimits(data, amount_of_period=1):
 
 
 def convertSecondsToTime(s):
-    hours = s // 3600
-    minutes = (s - hours * 3600) // 60
-    seconds = s - hours * 3600 - minutes * 60
-    milis = (s - hours * 3600 - minutes * 60 - seconds) * 100
+    hours = int(s // 3600)
+    minutes = int((s - hours * 3600) // 60)
+    seconds = int(s - hours * 3600 - minutes * 60)
+    milis = int((s - hours * 3600 - minutes * 60 - seconds) * 100)
     return "Current time: " + str(hours) + "h. " + str(minutes) + "m. " + str(seconds) + "s. " + str(milis) + "ms"
 
 
 def sec_to_time_short(s):
-    hours = s // 3600
-    minutes = (s - hours * 3600) // 60
-    seconds = s - hours * 3600 - minutes * 60
-    milis = (s - hours * 3600 - minutes * 60 - seconds) * 100
+    hours = int(s // 3600)
+    minutes = int((s - hours * 3600) // 60)
+    seconds = int(s - hours * 3600 - minutes * 60)
+    milis = int((s - hours * 3600 - minutes * 60 - seconds) * 100)
     return str(hours) + "h " + str(minutes) + "m " + str(seconds) + "s " + str(milis) + "ms"
 
 
