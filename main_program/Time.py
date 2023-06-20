@@ -1,11 +1,14 @@
+import re
+
+
 class Time:
 
-    def __init__(self, _hour=0, _minute=0, _sec=0, _milis=0):
+    def __init__(self, _hour: float = 0, _minute: float = 0, _sec: float = 0, _milis: float = 0):
         self.__seconds = 0
         self.set_time(_hour, _minute, _sec, _milis)
 
     def get_seconds(self):
-        return self.seconds
+        return self.__seconds
 
     def add_time(self, second):
         self.__seconds = self.seconds + second
@@ -15,6 +18,11 @@ class Time:
 
     def getSeconds(self):
         return self.__seconds
+
+    @staticmethod
+    def parseOne(value: str):
+        v = re.split(r"h|m|s|ms", value.replace(" ", ""))
+        return Time(float(v[0]), float(v[1]), float(v[2]), float(v[3]))
 
     def convertSecToTime(self):
         hours = self.__seconds // 3600
