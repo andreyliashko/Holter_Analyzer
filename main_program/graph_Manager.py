@@ -1,6 +1,5 @@
 import os
 import sys
-
 import StaticMethods
 import numpy as np
 from main_program import container_Manager as cm
@@ -26,6 +25,7 @@ class Graph:
     signals_in_file = pyedflib.EdfReader(Variables.FilesConstant.file_directory).signals_in_file
     current_xs = []
     current_ys = []
+    prev_clicked = 1
     for i in range(signals_in_file):
         current_ys.append([])
     lim = 0
@@ -46,13 +46,19 @@ class Graph:
         if not os.path.isdir(self.file_n):
             os.mkdir(self.file_n)
 
-    def start_init(self):
+    def start_init(self, inp_xs=None, inp_ys=None):
+        if inp_xs is not None and inp_ys is not None:
+            self.current_xs = inp_xs
+            self.current_ys = inp_ys
+            self.startTime = self.current_xs[0]
+            self.finishTime = self.startTime + self.delta_time
+        else:
+            n = cm.Container(Variables.FilesConstant.file_directory)
+            for i in range(self.signals_in_file - 1):
+                n.writeFileToList(self.current_ys[i], i)
 
-        n = cm.Container(Variables.FilesConstant.file_directory)
-        for i in range(self.signals_in_file - 1):
-            n.writeFileToList(self.current_ys[i], i)
-
-        n.writeFileToListAndDate(self.current_ys[self.signals_in_file - 1], self.current_xs, self.signals_in_file - 1)
+            n.writeFileToListAndDate(self.current_ys[self.signals_in_file - 1], self.current_xs,
+                                     self.signals_in_file - 1)
 
         limit = (StaticMethods.predictionLimits(self.getCurrentYS(), 8))
         limit[0] = np.abs(limit[0])
@@ -64,9 +70,9 @@ class Graph:
     def init_value(self, x_s, y_s):
 
         current_position = 0
-        while self.current_xs[current_position] < self.startTime:
+        while current_position < len(self.current_xs) and self.current_xs[current_position] < self.startTime:
             current_position = current_position + 1
-        while self.current_xs[current_position] <= self.finishTime:
+        while current_position < len(self.current_xs) and self.current_xs[current_position] <= self.finishTime:
             x_s.append((self.current_xs[current_position]) - self.startTime)
             y_s.append(self.getCurrentYS(self.on_changed_sign)[current_position])
             current_position = current_position + 1
@@ -110,14 +116,30 @@ class Graph:
         x = []
         y = []
         self.init_value(x, y)
+        while len(x) <= 0:
+            self.startTime += self.delta_time * self.prev_clicked
+            self.finishTime += self.delta_time * self.prev_clicked
+            self.init_value(x, y)
+        self.prev_clicked = 1
+
+        # here i need to make multiple figure from 1
+        pos = 1
         ax1.clear()
         global draw_first_plot, draw_second_plot, draw_third_plot, c
-        if draw_first_plot:
-            ax1.plot(x, y, linewidth=0.5, color=c[0])
-        if draw_second_plot:
-            ax1.plot(x, StaticMethods.normalize_zscore(y), linewidth=0.5, color=c[1])
-        if draw_third_plot:
-            ax1.plot(x, StaticMethods.normalize_mean(y), linewidth=0.5, color=c[2])
+        ax1.plot([0, self.delta_time], [0, 0], linewidth=0.5, color='lightblue')
+        while pos < len(x):
+            while pos < len(x) and x[pos] - x[pos - 1] >= 1:
+                pos += 1
+            start_pos = pos
+            while pos < len(x) and x[pos] - x[pos - 1] < 1:
+                pos = pos + 1
+
+            if draw_first_plot:
+                ax1.plot(x[start_pos:pos], y[start_pos:pos], linewidth=0.5, color=c[0])
+            if draw_second_plot:
+                ax1.plot(x[start_pos:pos], StaticMethods.normalize_zscore(y[start_pos:pos]), linewidth=0.5, color=c[1])
+            if draw_third_plot:
+                ax1.plot(x[start_pos:pos], StaticMethods.normalize_mean(y[start_pos:pos]), linewidth=0.5, color=c[2])
 
         ax1.set_ylim([-self.lim, self.lim])
         add_time(ax1, StaticMethods.convertSecondsToTime(self.startTime))
@@ -136,6 +158,7 @@ class Graph:
             self.changeSlider()
 
     def prev(self, event):
+        self.prev_clicked = -1
         if self.startTime - self.delta_time >= 0:
             self.startTime = self.startTime - self.delta_time
             self.finishTime = self.finishTime - self.delta_time
@@ -195,10 +218,13 @@ def func(label):
     gr.redrawFigure()
 
 
-def start_plot():
+def start_plot(g: Graph = None):
     global gr
-    gr = Graph()
-    gr.start_init()
+    if g is not None:
+        gr = g
+    else:
+        gr = Graph()
+    # gr.start_init()
     global fig
     fig = plt.figure(figsize=(15, 7))
     global ax1
