@@ -39,5 +39,10 @@ class Time:
         milis = int((self.__seconds - hours * 3600 - minutes * 60 - seconds) * 100)
         return str(hours) + "h " + str(minutes) + "m " + str(seconds) + "s " + str(milis) + "ms"
 
+    def __eq__(self, other):
+        return self.__seconds == other.__seconds
+    def __gt__(self, other):
+        return self.__seconds > other.__seconds
+
     def __str__(self):
         return self.sec_to_time_short()

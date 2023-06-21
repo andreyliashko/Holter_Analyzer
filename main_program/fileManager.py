@@ -4,8 +4,7 @@ import sys
 import numpy as np
 import pyedflib as edfl
 
-sys.path.insert(1, os.path.join(sys.path[0], '../start_module'))
-import Variables
+from start_module import Variables
 
 ending = "_generated_"
 

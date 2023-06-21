@@ -1,9 +1,8 @@
 import os
 import sys
 
-sys.path.insert(1, os.path.join(sys.path[0], '../start_module'))
-import Variables
-import fileManager
+from start_module import Variables
+from main_program import fileManager
 
 
 class Container:

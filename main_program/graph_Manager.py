@@ -1,14 +1,12 @@
 import os
-import sys
-import StaticMethods
+from main_program import StaticMethods
 import numpy as np
 from main_program import container_Manager as cm
 
-sys.path.insert(1, os.path.join(sys.path[0], '../start_module'))
-import Variables
+from start_module import Variables
 import matplotlib.pyplot as plt
 import pylab
-import fileManager as fm
+from main_program import fileManager as fm
 from matplotlib.widgets import Button, Slider, CheckButtons
 import pyedflib
 
@@ -224,7 +222,7 @@ def start_plot(g: Graph = None):
         gr = g
     else:
         gr = Graph()
-    # gr.start_init()
+        gr.start_init()
     global fig
     fig = plt.figure(figsize=(15, 7))
     global ax1
@@ -268,5 +266,3 @@ def start_plot(g: Graph = None):
 
 if __name__ == "__main__":
     start_plot()
-#
-# start_plot()
