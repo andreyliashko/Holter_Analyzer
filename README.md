@@ -47,6 +47,10 @@ This is python default tools. Here you can scroll heart rhythm, increase and red
 # Part 2:
 In this part you can see part of data, with deleted period. Here is an example of a file with 3 deleted sectors.
 ![image](https://github.com/andreyliashko/Holter_Analyzer/assets/47381064/4ee40cc0-e885-4c4c-9860-f4cec4b5495c)
+  
+and any example of output file:
+  
+![image](https://github.com/andreyliashko/Holter_Analyzer/assets/47381064/b337fa4d-bf44-41b4-8672-1527f557474e)
 
 To perform it, you need to clear start_module/main.py and insert next code:
 
