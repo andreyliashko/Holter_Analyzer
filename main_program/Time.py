@@ -4,20 +4,40 @@ import re
 class Time:
 
     def __init__(self, _hour: float = 0, _minute: float = 0, _sec: float = 0, _milis: float = 0):
-        self.__seconds = 0
-        self.set_time(_hour, _minute, _sec, _milis)
+        self.__hours = _hour
+        self.__minutes = _minute
+        self.__seconds = _sec
+        self.__milis = _milis
 
     def get_seconds(self):
+        return self.__hours * 3600 + self.__minutes * 60 + self.__seconds + self.__milis / 100
+
+    @property
+    def hours(self):
+        return self.__hours
+
+    @property
+    def seconds(self):
         return self.__seconds
+
+    @property
+    def milis(self):
+        return self.__milis
+
+    @property
+    def minutes(self):
+        return self.__minutes
+
+    def timeForSliders(self):
+        if self.__minutes == 0:
+            return self.__hours-1, 59
+        return self.__hours, 59
 
     def add_time(self, second):
         self.__seconds = self.seconds + second
 
-    def set_time(self, hours, minutes, seconds, miliseconds):
-        self.__seconds = hours * 3600 + minutes * 60 + seconds + miliseconds / 100
-
     def getSeconds(self):
-        return self.__seconds
+        return self.__hours * 3600 + self.__minutes * 60 + self.__seconds + self.__milis / 100
 
     @staticmethod
     def parseOne(value: str):
@@ -25,24 +45,22 @@ class Time:
         return Time(float(v[0]), float(v[1]), float(v[2]), float(v[3]))
 
     def convertSecToTime(self):
-        hours = self.__seconds // 3600
-        minutes = (self.__seconds - hours * 3600) // 60
-        seconds = self.__seconds - hours * 3600 - minutes * 60
-        milis = (self.__seconds - hours * 3600 - minutes * 60 - seconds) * 100
-        return "Current time: " + str(hours) + "h. " + str(minutes) + "m. " + str(seconds) + "s. " + str(
-            milis) + "ms"
+        return "Current time: " + str(self.__hours) + "h. " + str(self.__minutes) + "m. " + str(
+            self.__seconds) + "s. " + str(
+            self.__milis) + "ms"
 
     def sec_to_time_short(self):
-        hours = int(self.__seconds // 3600)
-        minutes = int((self.__seconds - hours * 3600) // 60)
-        seconds = int(self.__seconds - hours * 3600 - minutes * 60)
-        milis = int((self.__seconds - hours * 3600 - minutes * 60 - seconds) * 100)
-        return str(hours) + "h " + str(minutes) + "m " + str(seconds) + "s " + str(milis) + "ms"
+        return str(self.__hours) + "h " + str(self.__minutes) + "m " + str(self.__seconds) + "s " + str(
+            self.__milis) + "ms"
 
     def __eq__(self, other):
-        return self.__seconds == other.__seconds
+        return self.get_seconds() == other.get_seconds()
+
     def __gt__(self, other):
-        return self.__seconds > other.__seconds
+        return self.get_seconds() > other.get_seconds()
+
+    def __lt__(self, other):
+        return self.get_seconds() < other.get_seconds()
 
     def __str__(self):
         return self.sec_to_time_short()

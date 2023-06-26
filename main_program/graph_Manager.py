@@ -2,12 +2,13 @@ import os
 from main_program import StaticMethods
 import numpy as np
 from main_program import container_Manager as cm
-
+import pyautogui
 from start_module import Variables
 import matplotlib.pyplot as plt
 import pylab
 from main_program import fileManager as fm
 from matplotlib.widgets import Button, Slider, CheckButtons
+from main_program.Time import Time
 import pyedflib
 
 draw_first_plot = True
@@ -17,18 +18,22 @@ c = ['black', 'orange', 'red']
 
 
 class Graph:
-    delta_time = Variables.GraphConstant.delta_time
-    startTime = 0
-    finishTime = startTime + delta_time
-    signals_in_file = pyedflib.EdfReader(Variables.FilesConstant.file_directory).signals_in_file
-    current_xs = []
-    current_ys = []
-    prev_clicked = 1
-    for i in range(signals_in_file):
-        current_ys.append([])
-    lim = 0
-    on_changed_sign = Variables.FilesConstant.current_signal
-    file_n = ""
+
+    def __init__(self):
+        self.delta_time = Variables.GraphConstant.delta_time
+        self.startTime = 0
+        self.finishTime = self.startTime + self.delta_time
+        self.signals_in_file = pyedflib.EdfReader(Variables.FilesConstant.file_directory).signals_in_file
+        self.current_xs = []
+        self.current_ys = []
+        self.prev_clicked = 1
+        for i in range(self.signals_in_file):
+            self.current_ys.append([])
+        self.lim = 0
+        self.on_changed_sign = Variables.FilesConstant.current_signal
+        self.file_n = ""
+        self.min_fin_time: Time = Time(0, 0, 0, 0)
+        self.max_fin_time: Time = Time(1, 11, 0, 0)
 
     def getCurrentYS(self, s=Variables.FilesConstant.current_signal):
         return self.current_ys[s]
@@ -157,7 +162,7 @@ class Graph:
 
     def prev(self, event):
         self.prev_clicked = -1
-        if self.startTime - self.delta_time >= 0:
+        if self.startTime - self.delta_time >= self.min_fin_time.getSeconds():
             self.startTime = self.startTime - self.delta_time
             self.finishTime = self.finishTime - self.delta_time
             self.redrawFigure()
@@ -171,7 +176,22 @@ class Graph:
         self.finishTime = self.startTime + self.delta_time
 
     def buttonGoTo(self, event):
-        self.set_time(hour_slider.val, minute_slider.val)
+        t: Time = Time(float(hour_slider.val), float(minute_slider.val), 0, 0)
+        if t > self.max_fin_time:
+            hour_slider.set_val(self.max_fin_time.hours)
+            minute_slider.set_val(self.max_fin_time.minutes)
+            self.set_time(self.max_fin_time.hours, self.max_fin_time.minutes)
+            self.redrawFigure()
+            return
+
+        if t < self.min_fin_time:
+            hour_slider.set_val(self.min_fin_time.hours)
+            minute_slider.set_val(self.min_fin_time.minutes)
+            self.set_time(self.min_fin_time.hours, self.min_fin_time.minutes)
+            self.redrawFigure()
+            return
+
+        self.set_time(t.hours, t.minutes)
         self.redrawFigure()
 
     def sign_slider(self, event):
@@ -216,15 +236,31 @@ def func(label):
     gr.redrawFigure()
 
 
-def start_plot(g: Graph = None):
+slider_color_settings = {
+    'color': 'Teal',
+    'alpha': 0.8
+}
+button_color_settings = {
+    'hovercolor': 'DarkOrange',
+    'color': 'Orange'
+}
+
+
+def start_plot(g: Graph = None, st: Time = Time(0, 0, 0, 0), fin: Time = Time(24, 0, 0, 0)):
     global gr
     if g is not None:
         gr = g
     else:
         gr = Graph()
         gr.start_init()
+
+    screen_width, screen_height = pyautogui.size()
+
+    # Розмір вікна, який ми бажаємо встановити
+    window_width, window_height = screen_width, screen_height * 0.73
     global fig
-    fig = plt.figure(figsize=(15, 7))
+    fig = plt.figure(figsize=(window_width / 100, window_height / 100), dpi=100)
+    fig.canvas.manager.window.setGeometry(0, 0, window_width, window_height)
     global ax1
     ax1 = fig.add_subplot()
     gr.redrawFigure()
@@ -232,6 +268,7 @@ def start_plot(g: Graph = None):
     add_time(ax1, StaticMethods.convertSecondsToTime(gr.startTime))
 
     fig.subplots_adjust(left=0.04, right=0.998, top=1.0, bottom=0.3)
+    fig.canvas.manager.set_window_title('Holter Analyzer')
 
     axes_button_add = pylab.axes([0.675, 0.18, 0.3, 0.075])
     axes_button_remove = pylab.axes([0.06, 0.18, 0.3, 0.075])
@@ -241,15 +278,22 @@ def start_plot(g: Graph = None):
     axes_button_go_to = pylab.axes([0.4, 0.075, 0.25, 0.08])
     axes_sign_slider = pylab.axes([0.06, 0.0, 0.3, 0.075])
 
-    button_add = Button(axes_button_add, 'Next')
-    button_remove = Button(axes_button_remove, 'Previous')
-    button_save_to_file = Button(axes_button_save_to_file, 'Save')
+    button_add = Button(axes_button_add, label="Next", **button_color_settings)
+    button_remove = Button(axes_button_remove, 'Previous', **button_color_settings)
+    button_save_to_file = Button(axes_button_save_to_file, 'Save', **button_color_settings)
+    if st != Time(0, 0, 0, 0):
+        button_save_to_file = Button(axes_button_save_to_file, 'Save', color=(0, 0, 0, 0))
+        button_save_to_file.active = False
 
     global hour_slider, minute_slider, sign_slider
-    hour_slider = Slider(axes_slider1, "HOURS: ", 0, 23, 0, valstep=1)
-    minute_slider = Slider(axes_slider2, "MINUTES: ", 0, 59, 0, valstep=1)
-    button_go_to = Button(axes_button_go_to, "Go to")
-    sign_slider = Slider(axes_sign_slider, "SIGNAL: ", 0, 2, 0, valstep=1)
+    hour1, minute1 = st.timeForSliders()
+    hour2, minute2 = fin.timeForSliders()
+
+    hour_slider = Slider(axes_slider1, "HOURS: ", 0, hour2, 0, valstep=1, **slider_color_settings)
+    minute_slider = Slider(axes_slider2, "MINUTES: ", 0, minute2, 0, valstep=1, **slider_color_settings)
+    button_go_to = Button(axes_button_go_to, "Go to", **button_color_settings)
+    sign_slider = Slider(axes_sign_slider, "SIGNAL: ", 0, gr.getSignalsAmount() - 1, 0, valstep=1,
+                         **slider_color_settings)
     sign_slider.set_val(Variables.FilesConstant.current_signal)
     sign_slider.on_changed(gr.sign_slider)
 

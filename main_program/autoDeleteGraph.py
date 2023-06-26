@@ -7,6 +7,7 @@ from main_program.StaticMethods import *
 from main_program.Time import Time
 
 
+# this class helps to generate patient files
 class deleteAndFindLabel:
     def __init__(self, start_period: Time, finish_period: Time, patient: str = None):
         self.__start_period = start_period
@@ -20,6 +21,7 @@ class deleteAndFindLabel:
         return f"""DELETED FROM Time1:{str(self.__start_period)} TO Time2:{str(self.__finish_period)} PERIOD;\n"""
 
 
+# this class helps to generate deleted period label
 class Dir:
     def __init__(self, patient, start_period: int, finish_period: int):
         self.patient = patient
@@ -51,6 +53,7 @@ class autoDeleteGraph:
 
         self.file_init()
 
+    # check if file with current patient exist
     def file_init(self):
 
         s: str = self.__file_direction + "/" + self.getPatientName()
@@ -63,11 +66,13 @@ class autoDeleteGraph:
         v: str = self.__graph_constant.file_n
         return v.split("/")[-1]
 
+    # read data from input period if file exist
     def readData(self, _start: Time, _finish: Time):
         current_path: str = self.__generateFileName(_start, _finish)
+
         if not os.path.exists(current_path):
             print(f"[INFO] file does not exist")
-            return None
+            self.__writeData(start, finish)
         x_s = []
         y_s = []
         for i in range(self.__graph_constant.getSignalsAmount()):
@@ -82,6 +87,7 @@ class autoDeleteGraph:
                             y_s[j].append(float(current_line[j + 1]))
         return [x_s, y_s]
 
+    # read data when file does not exist
     def __writeData(self, start_time: Time = None, finish_time: Time = None):
 
         if start_time is None:
@@ -100,14 +106,18 @@ class autoDeleteGraph:
         self.__graph_constant.start_init()
         self.__full_file_name = self.__file_direction + str(
             Dir(self.getPatientName(), self.__startTime, self.__finishTime))
+
         with open(self.__full_file_name, 'w') as current_file:
+            start_line = f"{'Date':<39}"
+            for j in range(self.__graph_constant.getSignalsAmount()):
+                start_line += f"{'Signal ' + str(j):>30}"
+            current_file.write(start_line + "\n")
 
             st = self.__graph_constant.getElementPos(self.__startTime)
             for j in self.__need_to_delete:
-
                 fin = self.__graph_constant.getElementPos(j[0].getSeconds())
                 i = st
-                while i <= fin:
+                while i < fin:
                     current_file.write(self.__generateOneLine(i))
                     i = i + 1
                     st = self.__graph_constant.getElementPos(j[1].getSeconds()) + 1
@@ -120,6 +130,7 @@ class autoDeleteGraph:
         print(f"[INFO] file:{self.__generateFileName(start_time, finish_time)} saved;")
         return True
 
+    # create one line of input file data
     def __generateOneLine(self, i: int):
         current_line = f"{sec_to_time_short(self.__graph_constant.current_xs[i]):<30}"
         for j in range(self.__graph_constant.getSignalsAmount()):
@@ -131,8 +142,11 @@ class autoDeleteGraph:
         d = deleteAndFindLabel(startTime, finishTime, self.getPatientName()).genFileName()
         return self.__file_direction + "/" + str(d)
 
+    # check if all input info correct and init data, what must be deleted
     def deleteData(self, start_t: Time, finish_t: Time, what_to_delete: List = []):
-
+        if len(what_to_delete) < 1:
+            self.__writeData(start_t, finish_t)
+            return True
         what_to_delete.sort(key=lambda x: x[0].get_seconds())
 
         for i in range(len(what_to_delete) - 1):
@@ -140,15 +154,21 @@ class autoDeleteGraph:
                 raise Exception("Input times period can not contain another input period")
 
         self.__need_to_delete = what_to_delete
-        if self.__need_to_delete[-1][1]>finish_t or self.__need_to_delete[0][0]<start_t:
-            raise Exception("general time period must be greater then deleted period;")
+        if self.__need_to_delete[-1][1] > finish_t or self.__need_to_delete[0][0] < start_t:
+            raise Exception("general time period must be greater than deleted period;")
         self.__writeData(start_t, finish_t)
         return True
 
+    # function to draw graph
     def make_graph(self, start_time: Time, finish_time: Time):
         xs1, ys1 = self.readData(start_time, finish_time)
+        self.__graph_constant.min_fin_time = start_time
+        self.__graph_constant.max_fin_time = Time(finish_time.hours,
+                                                  finish_time.minutes - Variables.GraphConstant.delta_time / 60,
+                                                  finish_time.seconds,
+                                                  finish_time.milis)
         self.__graph_constant.start_init(xs1, ys1)
-        start_plot(self.__graph_constant)
+        start_plot(self.__graph_constant, start_time, finish_time)
 
     def get_current_file_dir(self):
         return self.__file_direction
@@ -156,13 +176,13 @@ class autoDeleteGraph:
 
 if __name__ == "__main__":
     autoDelGraph = autoDeleteGraph()
-    start = Time()
-    finish = Time(1, 0, 0, 0)
+    start = Time(1, 0, 0, 0)
+    finish = Time(1, 12, 0, 0)
 
-    need_to_del = []
-    need_to_del.append([Time(_hour=0, _minute=0, _sec=40, _milis=0), Time(_hour=0, _minute=0, _sec=50, _milis=0)])
-    need_to_del.append([Time(_hour=0, _minute=0, _sec=0, _milis=0), Time(_hour=0, _minute=0, _sec=10, _milis=0)])
-    need_to_del.append([Time(_hour=0, _minute=0, _sec=20, _milis=0), Time(_hour=0, _minute=0, _sec=30, _milis=0)])
-    autoDelGraph.deleteData(start, finish, need_to_del)
+    # need_to_del = []
+    # need_to_del.append([Time(_hour=0, _minute=0, _sec=40, _milis=0), Time(_hour=0, _minute=0, _sec=50, _milis=0)])
+    # need_to_del.append([Time(_hour=0, _minute=0, _sec=0, _milis=0), Time(_hour=0, _minute=0, _sec=10, _milis=0)])
+    # need_to_del.append([Time(_hour=0, _minute=0, _sec=20, _milis=0), Time(_hour=0, _minute=0, _sec=30, _milis=0)])
+    # autoDelGraph.deleteData(start, finish)
 
     autoDelGraph.make_graph(start, finish)
