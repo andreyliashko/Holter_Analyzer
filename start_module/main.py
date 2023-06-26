@@ -1,11 +1,7 @@
 import os
 import sys
-
-
-
 from main_program.Time import Time
 from main_program.autoDeleteGraph import *
-
 from main_program import graph_Manager as gm
 
 if __name__ == "__main__":
