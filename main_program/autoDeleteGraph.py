@@ -5,6 +5,7 @@ from main_program.graph_Manager import *
 from start_module.Variables import *
 from main_program.StaticMethods import *
 from main_program.Time import Time
+from main_program.delete_alg.qrs import DeleteByQRS
 
 
 # this class helps to generate patient files
@@ -36,6 +37,8 @@ class Dir:
 
 
 class autoDeleteGraph:
+    __len_between_column = 40
+
     def __init__(self):
         self.__startTime: int = 0
         self.__finishTime: int = 0
@@ -104,6 +107,10 @@ class autoDeleteGraph:
             raise Exception(
                 f"Forbidden to modify file. It is already exist; Delete file from folder or choose another input time;")
         self.__graph_constant.start_init()
+
+        # add element to self.__need_to_delete array
+        self.__auto_analyze_periods(start_time, finish_time)
+
         self.__full_file_name = self.__file_direction + str(
             Dir(self.getPatientName(), self.__startTime, self.__finishTime))
 
@@ -117,7 +124,7 @@ class autoDeleteGraph:
             for j in self.__need_to_delete:
                 fin = self.__graph_constant.getElementPos(j[0].getSeconds())
                 i = st
-                while i < fin:
+                while i <= fin:
                     current_file.write(self.__generateOneLine(i))
                     i = i + 1
                     st = self.__graph_constant.getElementPos(j[1].getSeconds()) + 1
@@ -170,14 +177,30 @@ class autoDeleteGraph:
         self.__graph_constant.start_init(xs1, ys1)
         start_plot(self.__graph_constant, start_time, finish_time)
 
+    def find_nearest_data(self, time):
+        st_index = self.__graph_constant.current_xs.index(time) - 1
+        return [self.__graph_constant.current_xs[st_index], self.__graph_constant.current_xs[st_index + 2]]
+
+    def __auto_analyze_periods(self, start_t: Time, finish_t: Time):
+        st = self.__graph_constant.current_xs.index(start_t.getSeconds())
+        fin = self.__graph_constant.current_xs.index(finish_t.getSeconds())
+        current_x = self.__graph_constant.current_xs[st:fin]
+
+        current_y = self.__graph_constant.getCurrentYS(1)[st:fin]
+
+        # find peaks
+        peaks, _ = find_peaks(current_y, height=500)
+        peak_x = [current_x[index] for index in peaks]
+        self.__need_to_delete = DeleteByQRS(peak_x, start_t, finish_t, self).find_inverse_intervals()
+
     def get_current_file_dir(self):
         return self.__file_direction
 
 
 if __name__ == "__main__":
     autoDelGraph = autoDeleteGraph()
-    start = Time(1, 0, 0, 0)
-    finish = Time(1, 12, 0, 0)
+    start = Time(4, 30, 0, 0)
+    finish = Time(5, 0, 0, 0)
 
     # need_to_del = []
     # need_to_del.append([Time(_hour=0, _minute=0, _sec=40, _milis=0), Time(_hour=0, _minute=0, _sec=50, _milis=0)])
