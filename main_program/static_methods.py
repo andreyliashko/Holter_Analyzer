@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def getMinimum(input_double):
+def get_minimum(input_double):
     res = input_double[0]
     for i in input_double:
         if res > i:
@@ -9,7 +9,7 @@ def getMinimum(input_double):
     return res
 
 
-def getMaximum(input_double):
+def get_maximum(input_double):
     res = input_double[0]
     for i in input_double:
         if res < i:
@@ -22,7 +22,7 @@ def getMaximum(input_double):
 # 2                       95
 # 3                       99.7
 
-def predictionLimits(data, amount_of_period=1):
+def prediction_limits(data, amount_of_period=1):
     res = []
     mean_val = np.mean(data)
     st_dev = np.std(data)
@@ -33,7 +33,7 @@ def predictionLimits(data, amount_of_period=1):
     return res
 
 
-def convertSecondsToTime(s):
+def convert_seconds_to_time(s):
     hours = int(s // 3600)
     minutes = int((s - hours * 3600) // 60)
     seconds = int(s - hours * 3600 - minutes * 60)
@@ -49,7 +49,7 @@ def sec_to_time_short(s):
     return str(hours) + "h " + str(minutes) + "m " + str(seconds) + "s " + str(milis) + "ms"
 
 
-def timetosec(hours, minutes, seconds=0, milis=0):
+def time_to_sec(hours, minutes, seconds=0, milis=0):
     return hours * 3600 + minutes * 60 + seconds + milis / 100
 
 

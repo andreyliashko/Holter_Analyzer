@@ -28,7 +28,7 @@ class Time:
     def minutes(self):
         return self.__minutes
 
-    def timeForSliders(self):
+    def time_for_sliders(self):
         if self.__minutes == 0:
             return self.__hours-1, 59
         return self.__hours, 59
