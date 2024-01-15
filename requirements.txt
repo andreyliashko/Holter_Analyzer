@@ -3,3 +3,4 @@ matplotlib==3.5.2
 pyedflib==0.1.36
 pyautogui==0.9.54
 PyQt5==5.15.10
+scipy==1.11.4

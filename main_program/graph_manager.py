@@ -18,6 +18,7 @@ from main_program import (
 )
 from main_program.Time import Time
 from start_module import variables
+from scipy.signal import find_peaks
 
 import matplotlib
 
@@ -148,17 +149,31 @@ class Graph:
             start_pos = pos
             while pos < len(x) and x[pos] - x[pos - 1] < 1:
                 pos = pos + 1
-
+            x1 = x[start_pos:pos]
+            y1 = y[start_pos:pos]
             if draw_first_plot:
-                ax1.plot(x[start_pos:pos], y[start_pos:pos], linewidth=0.5, color=c[0])
+                ax1.plot(x1, y1, linewidth=0.5, color=c[0])
+                self.__calculate_pics(x1, y1)
             if draw_second_plot:
                 ax1.plot(x[start_pos:pos], static_methods.normalize_zscore(y[start_pos:pos]), linewidth=0.5, color=c[1])
+                self.__calculate_pics(x1, static_methods.normalize_zscore(y1))
             if draw_third_plot:
                 ax1.plot(x[start_pos:pos], static_methods.normalize_mean(y[start_pos:pos]), linewidth=0.5, color=c[2])
+                self.__calculate_pics(x1, static_methods.normalize_mean(y1))
 
         ax1.set_ylim([-self.lim, self.lim])
         add_time(ax1, static_methods.convert_seconds_to_time(self.startTime))
         pylab.draw()
+
+    def __add_pics_to_graph(self, peak_x, peak_y):
+        self
+        ax1.plot(peak_x, peak_y, 'ro')
+        pylab.draw()
+
+    def __calculate_pics(self, x1, y1):
+        # peaks, _ = find_peaks(y1, height=np.max(y1)*1/2)
+        peaks, _ = find_peaks(y1, height=500)
+        self.__add_pics_to_graph([x1[index] for index in peaks], [y1[index2] for index2 in peaks])
 
     def change_slider(self):
         hour = self.startTime // 3600
